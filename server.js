@@ -1,6 +1,8 @@
 const express = require("express");
 const connectionDatabase = require("./helpers/database/connectdb");
 const app = express();
+//Express body middleware
+app.use(express.json());
 const routes = require("./routers/index.js");
 const customErrorHandler = require("./middlewares/Errors/customErrorHandler");
 //Environmental Variables

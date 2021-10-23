@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
-
+const bcrypt = require("bcryptjs");
+const jwtwebtoken = require("jsonwebtoken");
 const UserSchema = new Schema({
   name: {
     type: String,
@@ -9,7 +10,7 @@ const UserSchema = new Schema({
   email: {
     type: String,
     required: [true, "please provide email"],
-    unique: [true, "this email already taken"],
+    unique: true,
     match: [
       /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
       "please provide valid email",
@@ -50,5 +51,34 @@ const UserSchema = new Schema({
     type: Boolean,
     default: false,
   },
+});
+//userSchema methods
+UserSchema.methods.generateJwtFromUser = function () {
+  const { JWT_SECRET, JWT_EXPIRE } = process.env;
+  const payload = {
+    id: this._id,
+    name: this.name,
+  };
+  const token = jwtwebtoken.sign(payload, JWT_SECRET, {
+    expiresIn: JWT_EXPIRE,
+  });
+
+  return token;
+};
+
+//hooks
+UserSchema.pre("save", function (next) {
+  //parola degismemisse
+  if (!this.isModified("password")) {
+    next();
+  }
+  bcrypt.genSalt(10, (err, salt) => {
+    if (err) next(err);
+    bcrypt.hash(this.password, salt, (err, h) => {
+      if (err) next(err);
+      this.password = h;
+      next();
+    });
+  });
 });
 module.exports = mongoose.model("User", UserSchema);
