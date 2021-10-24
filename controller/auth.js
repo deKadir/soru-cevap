@@ -37,10 +37,42 @@ const login = asyncErrorWrapper(async (req, res, next) => {
 });
 const logout = asyncErrorWrapper(async (req, res, next) => {
   const { JWT_COOKIE, NODE_ENV } = process.env;
-  return res.status(200).cookie({
-    httpOnly: true,
-    expires: new Date(Date.now()),
-    secure: NODE_ENV == "development" ? false : true,
+  return res
+    .status(200)
+    .cookie({
+      httpOnly: true,
+      expires: new Date(Date.now()),
+      secure: NODE_ENV == "development" ? false : true,
+    })
+    .json({
+      success: true,
+      message: "logout successfull",
+    });
+});
+const imageUpload = asyncErrorWrapper(async (req, res, next) => {
+  //image upload success
+  const user = await User.findByIdAndUpdate(
+    req.user.id,
+    { profileImg: req.savedProfileImage },
+    { new: true, runValidators: true }
+  );
+  res.status(200).json({
+    success: true,
+    data: user,
+  });
+});
+const forgotPassword = asyncErrorWrapper(async (req, res, next) => {
+  const resetEmail = req.body.email;
+
+  const user = await User.findOne({ email: resetEmail });
+  if (!user) {
+    return next(new CustomError("user couldn't found"), 400);
+  }
+  const resetPasswordToken = user.getResetPasswordTokenFromUser();
+  await user.save();
+  res.json({
+    success: true,
+    message: "token sent to your email",
   });
 });
 module.exports = {
@@ -48,4 +80,6 @@ module.exports = {
   getuser,
   login,
   logout,
+  imageUpload,
+  forgotPassword,
 };
