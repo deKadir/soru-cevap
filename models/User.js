@@ -67,6 +67,7 @@ UserSchema.methods.generateJwtFromUser = function () {
 };
 
 //hooks
+//bunları nomral şartlarda kullanmamaya çalış,çok fazla takıntılı oluyor büyük projelerde
 UserSchema.pre("save", function (next) {
   //parola degismemisse
   if (!this.isModified("password")) {
