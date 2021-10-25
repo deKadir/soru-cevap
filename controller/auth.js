@@ -2,6 +2,7 @@ const User = require("../models/User");
 const CustomError = require("../helpers/error/CustomError");
 const { validateUserInput, comparePasswords } = require("../input/inputHelper");
 const asyncErrorWrapper = require("express-async-handler");
+const sendEmail = require("../helpers/libraries/sendMail");
 const { sendJwtToClient } = require("../helpers/auth/tokenManager");
 const register = asyncErrorWrapper(async (req, res, next) => {
   const { name, email, password, role } = req.body;
@@ -70,7 +71,14 @@ const forgotPassword = asyncErrorWrapper(async (req, res, next) => {
   }
   const resetPasswordToken = user.getResetPasswordTokenFromUser();
   await user.save();
-  res.json({
+
+  const resetPasswordUrl = `http://localhost:5000/api/auth/resetpassword?resetPasswordToken=${resetPasswordToken}`;
+  const emailTemplate = `
+  <h3>Reset your password</h3>
+  <p>this <a href=${resetPasswordUrl} target='_blank'>expired in hour </a> </p>
+  `;
+
+  return res.status(200).json({
     success: true,
     message: "token sent to your email",
   });
