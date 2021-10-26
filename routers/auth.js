@@ -5,6 +5,7 @@ const {
   login,
   forgotPassword,
   logout,
+  editDetails,w
   imageUpload,
 } = require("../controller/auth");
 const router = express.Router();
@@ -58,5 +59,6 @@ router.post(
   [getAccessToRoute, profileImageUpload.single("profile_image")],
   imageUpload
 );
+router.put("/edit", getAccessToRoute, editDetails);
 router.post("/forgotpassword", forgotPassword);
 module.exports = router;

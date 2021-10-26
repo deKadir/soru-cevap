@@ -1,5 +1,8 @@
 const CustomError = require("../../helpers/error/CustomError");
+const asyncErrorWrapper = require("express-async-handler");
+const User = require("../../models/User");
 const jwt = require("jsonwebtoken");
+const Question = require("../../models/Question");
 const {
   isTokenIncluded,
   getAccessTokenFromHeader,
@@ -24,11 +27,28 @@ const getAccessToRoute = (req, res, next) => {
       id: decoded.id,
       name: decoded.name,
     };
-  //örnek burada ki gibi
-  //burada mesela bütün işlemi yaptım ben req.usere ben kayıt ettim next ile bir sonraki middleware geç demek
-  //burada çıkıp bundan sonraki yazılımış middlware geçecek , yani abc ye
+    //örnek burada ki gibi
+    //burada mesela bütün işlemi yaptım ben req.usere ben kayıt ettim next ile bir sonraki middleware geç demek
+    //burada çıkıp bundan sonraki yazılımış middlware geçecek , yani abc ye
     next();
   });
 };
+const getAdminAccess = asyncErrorWrapper(async (req, res, next) => {
+  const { id } = req.user;
+  const user = await User.findById(id);
+  if (user.role !== "admin") {
+    return next(new CustomError("Only admins  can access to this route", 403));
+  }
+  next();
+});
 
-module.exports = { getAccessToRoute };
+const getQuestionOwnerAccess = asyncErrorWrapper(async (req, res, next) => {
+  const userId = req.user.id;
+  const questionId = req.params.id;
+  const question = await Question.findById(questionId);
+  if (question.user != userId) {
+    return next(new CustomError("you are not allowed to edit "));
+  }
+  next();
+});
+module.exports = { getAccessToRoute, getAdminAccess, getQuestionOwnerAccess };

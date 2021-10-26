@@ -3,8 +3,9 @@ const question = require("./question.js");
 const user = require("./user");
 const auth = require("./auth");
 const router = express.Router();
-
+const admin = require("./admin");
 router.use("/questions", question);
 router.use("/auth", auth);
 router.use("/users", user);
+router.use("/admin", admin);
 module.exports = router;
